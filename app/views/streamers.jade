@@ -1,0 +1,32 @@
+extends layout
+
+block content
+  h1 Tweet Streamers
+  p
+    a(href="/streamers/authorize")
+      b authorize a new streamer
+  p
+    a(href="http://twitter.com/logout", target="_blank")  Twitter Logout
+
+  each streamer in streamers
+    if streamer.oauthAccess() && streamer.oauthAccess().token && streamer.oauthAccess().secret
+      - status = 'authorized'
+    else
+      - status = 'unauthorized'
+    if streamer.isStreaming()
+      - status += ' streaming'
+    p.streamer(class=status)
+      .account
+        span.screen-name @#{streamer.screenName()}
+        span.twitter-id &nbsp;&nbsp;&nbsp;[#{streamer.id()}]
+      .location location: #{streamer.location()}&nbsp;&nbsp;&nbsp;
+      .description #{streamer.description()}
+      .friends-count friends: #{streamer.friendsCount()}
+      .followers-count followers: #{streamer.followersCount()}
+      .timezone  timezone: #{streamer.timeZone()}&nbsp;&nbsp;(#{streamer.utcOffset()})
+      .lang lang: #{streamer.lang()}
+      .menu
+        if streamer.isStreaming()
+          | streaming on
+        else
+          | streaming off

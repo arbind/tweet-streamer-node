@@ -1,0 +1,35 @@
+# connect to redis
+redis = require('redis-url').connect('redis://127.0.0.1:6379')
+redis.select 1
+
+# Use YelpAPI v2.0
+Yelp = require('yelp')
+yelp = Yelp.createClient({consumer_key: 'EdtIXf4NMUBXh8XoysxW2Q',  consumer_secret: 'hMUNaKi1Oa_d7OvlHH0d2_7d7-M',  token: 'p4KFTaHrRR6oTGNOzGq28G9lrdgssyId',  token_secret: '8Zvy3k9wMPQflJs7Ztgq9w2uE1c'})
+yelp.business("yelp-san-francisco", function(err, data) { console.log(err || data) })
+search ...
+
+
+
+        .yelp-reviews
+          each review in biz.reviews
+            - user = review['user']
+            blockquote.cut.yelp-review
+              .vcard.author
+                a(href="http://www.yelp.com/user_details?userid=#{user['id']}")
+                  span.avatar
+                    img.photo(src= user['image_url'])
+                  span.fn
+                     = user['name']
+                  span.star-rating
+                     img(src=review['rating_image_url'])
+                a.yelp-follow-button(href="http://www.yelp.com/following_user/add?dst_user_id=#{user['id']}&previous_url=#{req.url}")
+                    i
+                    span.label
+                      Follow
+                .entry
+                  = review['excerpt']
+                .footer
+                  .how-long-ago
+                    = review['time_created']
+                  a.view-details(href="http://www.yelp.com/biz/#{biz.id}#hrid:#{review['id']}")
+                    read more
