@@ -1,6 +1,5 @@
 class Streamer extends ModelBase
   Service: StreamerService
-  className: ()-> 'Streamer'
 
   @materialize: (id, screenName, oauthAccess, callback) ->
     tid = (parseInt id)
@@ -107,27 +106,15 @@ class Streamer extends ModelBase
   saveTweets: (tweetDataList) -> # also trim them for only fieds that we need
     tweetDataList = [ tweetDataList... ] # list of tweet data hashes
 
-    tweetFields = ['id', 'text', 'created_at', 'in_reply_to_status_id', 'in_reply_to_user_id', 'in_reply_to_screen_name', 'geo', 'coordinates', 'place', 'retweet_count', 'retweeted' ]
-    tweetUserFields = [ 'id', 'name', 'screen_name', 'location', 'lang' ] 
-    tweetStreamerFields = [ 'screen_name', 'location' ]
-
-    trimedTweets = [] # final result of tweet objects
+    tweets = [] # final result of tweet objects
     for tweetData in tweetDataList
       # console.log tweetData # to see all availalbe fields
-      tweet = {}
-      tweet.user = {}
-      tweet.streamer = {}
-      tweet.urls = tweetData.entities.urls if tweetData.entities?.urls?
-
-      # grab only the fields we want
-      tweet.streamer[field] = @attributes[field] for field in tweetStreamerFields
-      (tweet[field] = tweetData[field] if tweetData[field]?) for field in tweetFields
-      (tweet.user[field] = tweetData.user[field] if tweetData.user[field]?) for field in tweetUserFields if tweetData.user?
 
       # save the new tweet
-      t = new Tweet tweet
-      t.save()
-      trimedTweets.push t
-    trimedTweets
+      tw = new Tweet tweetData
+      tw.setStreamer @
+      tw.save()
+      tweets.push tw
+    tweets
 
 module.exports = Streamer

@@ -25,15 +25,20 @@ class TweetService extends ServiceBase
 
   @save: (tweet)=>
     return false unless tweet
-    try 
-      console.log "Saving #{tweet.text()}"
+    try
+      # console.log "Tweet.toJSON()"
+      # console.log tweet.toJSON()
+      # console.log "Tweet.toEvent()"
+      # console.log tweet.toEvent()
+      # console.log "Tweet"
+      # console.log tweet
       tweetKey = (@tweetKey tweet)
       score = 0 - Date.now()                                                      # score in reverse chronological order
       redis.set tweetKey, tweet.toJSON()                                          # save tweet by tweet id
-      redis.zadd (@userKey tweet.screenName()), score, tweet.id()                # save tweet id to user
-      redis.zadd (@streamerKey tweet.streamerScreenName()), score, tweet.id()   # save tweet id to streamer
+      redis.zadd (@userKey tweet.screenName()), score, tweet.id()                 # save tweet id to user
+      redis.zadd (@streamerKey tweet.streamer().screenName()), score, tweet.id()     # save tweet id to streamer
       redis.zadd @allTweetsKey(), score, tweet.id()                               # save tweet id to all tweets
-      (@_pruneTweets tweet.screenName())                                         # prune tweets asynchronously
+      (@_pruneTweets tweet.screenName())                                          # prune tweets asynchronously
       true
     catch exception
       logError exception
@@ -65,10 +70,10 @@ class TweetService extends ServiceBase
     for tweet in tweets
       try 
         tweetKey = (@tweetKey tweet)
-        redis.del  tweetKey                                                   # remove tweet
-        redis.zrem (@userKey tweet.screenName()), tweet.id()                 # remove tweet ref from user
-        redis.zrem (@streamerKey tweet.streamerScreenName()), tweet.id()    # remove tweet ref from streamer
-        redis.zrem @allTweetsKey(), tweet.id()                                # remove tweet ref from all tweets
+        redis.del  tweetKey                                                    # remove tweet
+        redis.zrem (@userKey tweet.screenName()), tweet.id()                   # remove tweet ref from user
+        redis.zrem (@streamerKey tweet.streamer().screenName()), tweet.id()    # remove tweet ref from streamer
+        redis.zrem @allTweetsKey(), tweet.id()                                 # remove tweet ref from all tweets
       catch exception
         logError exception
 
@@ -109,8 +114,8 @@ class TweetService extends ServiceBase
   # de-serialization
   @_tweetFromJSON: (json_string)=> # throws exception if json can not be parsed
     return null unless json_string
-    new Tweet JSON.parse(json_string)
-
+    tweet = new Tweet JSON.parse(json_string)
+      
   @_tweetsFromJSONArray: (jsonArray)=>
     resultList = []
     return resultList unless jsonArray

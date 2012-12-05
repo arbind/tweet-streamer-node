@@ -55,6 +55,7 @@ class StreamerService extends ServiceBase
       pollMethod = ()=> @emitNewTweets(streamer)
       int = (setInterval pollMethod, pollFrequencyINms)
       @Poll4NewTweetTimers[streamer.id()] = int
+      pollMethod()
 
     # ensure all streamers don't all start at once if multiple calls to startStreaming are made at 'one' time
     @streamingCount = @streamingCount + 1

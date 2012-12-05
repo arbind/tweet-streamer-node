@@ -3,43 +3,45 @@ Sources:
 http://jamesroberts.name/blog/2010/02/22/string-functions-for-javascript-trim-to-camel-case-to-dashed-and-to-underscore/
 ###
 
+String::upcase ||= -> @toUpperCase()
+
 # trim
-String.prototype.trim ||= ()->
+String::trim ||= ()->
   @replace /^\s+|\s+$/g, ""
 
 # ltrim
-String.prototype.ltrim ||= ()->
+String::ltrim ||= ()->
   @replace /^\s+/g, ""
 
 # rtrim
-String.prototype.rtrim ||= ()->
+String::rtrim ||= ()->
   @replace /\s+$/g, ""
 
 # array of tokens
-String.prototype.tokens ||= (delim) ->
+String::tokens ||= (delim) ->
   list = @split(delim)
   list = (item.trim() for item in list)
   
 # toCamel
-String.prototype.toCamel ||= ()->
+String::toCamel ||= ()->
   @replace /(\-[a-z])/g, ($1)->
     $1.toUpperCase().replace('-','')
 
 # dasherize
-String.prototype.toDash ||= ()->
+String::toDash ||= ()->
   @replace /([A-Z])/g, ($1)->
     return "-"+$1.toLowerCase()
 
 #underscore
-String.prototype.toUnderscore ||= ()-> 
+String::toUnderscore ||= ()-> 
   @replace /([A-Z])/g, ($1)->
     "_"+$1.toLowerCase()
 
 # titleCase
-String.prototype.toTitleCase ||= ()->
+String::toTitleCase ||= ()->
   @replace /(?:^|\s)\w/g, ($1)->
     $1.toUpperCase()
 
 # file-name.coffee -> ClassName
-String.prototype.toClassName = ()->
+String::toClassName = ()->
   (@replace '.coffee','').toCamel().toTitleCase()
