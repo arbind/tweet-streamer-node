@@ -38,9 +38,7 @@
     , "chai-factories": "*"
     , "charlatan": "*"
     , "commander": "*"
-    , "sinon": "1.5"
     , "socket.io-client": "latest"
-    , "jasmine-node": "latest"
     , "supertest": "latest"
     , "jsdom": "latest"
     }

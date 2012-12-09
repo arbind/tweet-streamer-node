@@ -5,6 +5,7 @@ chai.factory 'streamer',
   description: 'Streamer Account of John Doe'
   location: 'NY,NY'
   oauth_access:
+    app: 'streamersApp'
     token: 1
     secret: 2
   lang: 'en'
@@ -16,10 +17,10 @@ chai.factory 'streamer',
 global.StreamerFactory = class StreamerFactory
   @uid: 100
   
-  @make: (options)->
+  @make: (overrides={})->
     atts = @newAtts()
-    atts.inject options if isPresent(options)
-    chai.create 'streamer', atts
+    atts.inject overrides
+    hash = chai.create 'streamer', atts
 
   @newAtts: ()->
     id = @uid++
@@ -34,6 +35,7 @@ global.StreamerFactory = class StreamerFactory
       description: "Streamer Account for #{name}"
       location: "#{city}, #{st}"
       oauth_access:
+        app: 'streamersApp'
         token: Charlatan.PhoneNumber.phoneNumber()
         secret: Charlatan.PhoneNumber.phoneNumber()
       lang: 'en'

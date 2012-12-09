@@ -76,15 +76,19 @@ class StreamerService extends ServiceBase
       return if !tweets or 0==tweets.length
       tweet.emitTo(@singleton()) for tweet in tweets
 
-  @save: (streamer)->
-    return false unless streamer?
+  @save: (streamer, callback)->
+    unless streamer?
+      callback(null, false) if callback?
+      return false 
     try 
       streamerKey = (@streamerKey streamer)
-      redis.set streamerKey, streamer.toJSON() # save tweet by tweet id
-      true
+      redis.set streamerKey, streamer.toJSON(), (err, ok)->
+        (callback err, ok) if callback?
+      return true
     catch exception
       console.log "exception #{exception} ."
       logError exception
+      (callback exception) if callback?
       false
 
   @find: (streamer, callback )=>
@@ -120,13 +124,17 @@ class StreamerService extends ServiceBase
 
   @findTweets: (screen_name, limit, callback )=> TweetService.findStreamerTweets screen_name, limit, callback
 
-  @destroy: (streamers...)=>
-    return unless streamers
-    for streamer in streamers
-      try 
-        streamerKey = (@streamerKey streamer)
-        redis.del streamerKey 
-      catch ex
-        logError ex
+  @destroy: (streamer, callback)=>
+    unless streamer
+      callback(null, false) if callback?
+      return false
+    try 
+      streamerKey = (@streamerKey streamer)
+      return redis.del streamerKey, (err, ok)->
+        callback(null, false) if callback?
+    catch ex
+      logError ex
+      (callback ex) if callback?
+      return false
 
 module.exports = StreamerService

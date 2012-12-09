@@ -66,7 +66,6 @@ global.requireModuleInFile = (path, filename)->
       global[className] = clazz   # make the class available globally
     else
       require filePath
-      console.log "loaded file #{filename}"
   catch exception
     console.log ""
     console.log "!! could not load #{filename} from #{path}"

@@ -19,6 +19,7 @@ class TwitterUser extends ModelBase
   screenName:       ()=> (@get 'screen_name')
   profileImageURL:  ()-> (@get 'profile_image_url')
 
+
   # optional attributes: removed to trim DB size
   # location:         ()=> (@get 'location')
   # description:      ()=> (@get 'description')

@@ -1,5 +1,5 @@
 class Streamer extends ModelBase
-  Service: StreamerService
+  ORM: StreamerService
   privateFields:    [ 'oauth_access' ]
   classFieldNames:  [ 'id'
                     , 'name'
@@ -16,15 +16,11 @@ class Streamer extends ModelBase
                     ]
 
   @materialize: (attributes, consumer_app_name, oauth_access_token, oauth_access_token_secret, callback) ->
+    callback = consumer_app_name if "function" is typeof consumer_app_name
     @find attributes, (err, streamer)->
       return (callback err) if err?
       s = streamer || new Streamer attributes, consumer_app_name, oauth_access_token, oauth_access_token_secret
       callback null, s
-
-  # finders
-  @find: (info, callback)-> (StreamerService.find info, callback)
-  @findById: (id, callback )->  (StreamerService.findById id, callback)
-  @findAll: (callback) -> StreamerService.findAll(callback)
 
   constructor: (attributes, consumer_app_name, oauth_access_token, oauth_access_token_secret) ->
     atts = {}
