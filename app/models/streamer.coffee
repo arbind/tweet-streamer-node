@@ -1,23 +1,67 @@
 class Streamer extends ModelBase
   Service: StreamerService
+  privateFields:    [ 'oauth_access' ]
+  classFieldNames:  [ 'id'
+                    , 'name'
+                    , 'screen_name'
+                    , 'description'
+                    , 'location'
+                    , 'oauth_access'
+                    , 'lang'
+                    , 'followers_count'
+                    , 'friends_count'
+                    , 'time_zone'
+                    , 'utc_offset'
+                    # , 'profile_image_url'
+                    ]
 
-  @materialize: (id, screenName, oauthAccess, callback) ->
-    tid = (parseInt id)
-    @findById tid, (err, streamer)->
+  @materialize: (attributes, consumer_app_name, oauth_access_token, oauth_access_token_secret, callback) ->
+    @find attributes, (err, streamer)->
       return (callback err) if err?
-      streamer = new Streamer unless streamer?
-      streamer.init tid, screenName, oauthAccess
-      callback null, streamer
+      s = streamer || new Streamer attributes, consumer_app_name, oauth_access_token, oauth_access_token_secret
+      callback null, s
 
   # finders
   @find: (info, callback)-> (StreamerService.find info, callback)
   @findById: (id, callback )->  (StreamerService.findById id, callback)
   @findAll: (callback) -> StreamerService.findAll(callback)
 
-  init: (id, screenName, oauthAccess) =>
-    @set 'id', id
-    @set 'screen_name', screenName
-    @set 'oauth_access', oauthAccess
+  constructor: (attributes, consumer_app_name, oauth_access_token, oauth_access_token_secret) ->
+    atts = {}
+    atts.inject attributes
+    if consumer_app_name?
+      atts.oauth_access =
+        app: consumer_app_name
+        token: oauth_access_token
+        secret: oauth_access_token_secret
+    super(atts)
+
+  oauthAccess: ()=> 
+    oauth = (@get 'oauth_access')
+    return {} unless oauth?
+    consumer = TwitterConsumers[oauth.app]
+    throw "No consumer app named '#{oauth.app}'" unless consumer?
+    authorization =  # derived the required oauth access
+      consumer_key: consumer.key
+      consumer_secret: consumer.secret
+      access_token_key: oauth.token
+      access_token_secret: oauth.secret
+
+  # convenient accessors
+  screenName:       ()=> (@get 'screen_name')
+  name:             ()=> (@get 'name')
+  description:      ()=> (@get 'description')
+  location:         ()=> (@get 'location')
+  followersCount:   ()=> (@get 'followers_count')
+  friendsCount:     ()=> (@get 'friends_count')
+  timeZone:         ()=> (@get 'time_zone')
+  utcOffset:        ()=> (@get 'utc_offset')
+  language:         ()=> (@get 'lang')
+
+  # optional attributes removed to trim DB size
+  
+  # profileImageURL:  ()-> (@get 'profile_image_url')
+
 
   isStreaming: ()=>StreamerService.isStreaming(@)
   startStreaming: ()=> StreamerService.startStreaming(@)
@@ -28,16 +72,6 @@ class Streamer extends ModelBase
   saveFriendIds: (friendList, callback)=> 
     (StreamerService.saveFriendIds @, friendList, callback)
 
-  # convenient accessors
-  screenName:     ()=> (@get 'screen_name')
-  location:       ()=> (@get 'location')
-  description:    ()=> (@get 'description')
-  followersCount: ()=> (@get 'followers_count')
-  friendsCount:   ()=> (@get 'friends_count')
-  timeZone:       ()=> (@get 'time_zone')
-  utcOffset:      ()=> (@get 'utc_offset')
-  lang:           ()=> (@get 'lang')
-
   lastTweetId: ()=> (@get 'last_tweet_id')
   saveLastTweetId: (tweetId)=>
     @set 'last_tweet_id', tweetId
@@ -46,17 +80,6 @@ class Streamer extends ModelBase
   twitterClient: ()=>
     return @_twitterClient if @_twitterClient?
     @_twitterClient = StreamerService.materializeTwitterClient(@)
-
-  oauthAccess: ()=> 
-    oauth = (@get 'oauth_access')
-    return {} unless oauth?
-    consumer = TwitterConsumers[oauth.app]
-    return {} unless consumer?
-    authorization =  # derived the required oauth access
-      consumer_key: consumer.key
-      consumer_secret: consumer.secret
-      access_token_key: oauth.token
-      access_token_secret: oauth.secret      
 
   pull: (callback) =>
     # console.log "pulling #{@screenName()}"

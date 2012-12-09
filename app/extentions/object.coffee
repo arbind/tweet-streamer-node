@@ -5,13 +5,30 @@ global.isPresent = (obj)->
 
 global.isEmpty = (obj)-> not isPresent(obj)
 
-unless Object.keys?
-  Object.keys = (obj)->
-    return [] if obj is null or obj is undefined or obj isnt Object(obj)
-    key for own key, val of obj
 
-unless global.merge?
-  global.merge = (targetHash, hashList...)->
-    for hash in hashList
-      targetHash[key] = val for own key, val of hash
-    targetHash
+global.isString = (thing)-> 'string' is typeof thing or thing instanceof String
+global.isNumber = (thing)-> 'number' is typeof thing or thing instanceof Number
+
+Object::keys ||= ()-> key for own key, val of @
+
+Object::isHash ||= ()->
+  ok = true
+  ok = false unless Object is @constructor
+  ok = false unless 'string' is typeof @[key] for own key, val of @
+  ok
+
+Object::contains ||= (obj)->
+  return false unless obj? and obj.isHash()
+  ok = true
+  ok &&= @[key] is obj[key] for own key of obj
+  ok
+
+Object::inject ||= (hashList...)->
+  for hash in hashList
+    @[key] = val for own key, val of hash
+  @
+
+Object.merge ||= (targetHash, hashList...)->
+  for hash in hashList
+    targetHash[key] = val for own key, val of hash
+  targetHash

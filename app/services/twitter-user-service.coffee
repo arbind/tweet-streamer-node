@@ -1,0 +1,1 @@
+class TwitterUserService extends ServiceBase

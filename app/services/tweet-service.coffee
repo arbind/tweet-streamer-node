@@ -65,7 +65,7 @@ class TweetService extends ServiceBase
     (callback = limit; limit = 100) if "function" is typeof limit # default limit=100 for streamer, assume last arg is the callback
     @_dereferenceTweetsForZKey @allTweetsKey(), limit, callback
 
-  @delete: (tweets...)=>
+  @destroy: (tweets...)=>
     return unless tweets
     for tweet in tweets
       try 
@@ -131,6 +131,6 @@ class TweetService extends ServiceBase
       numTweets = tweetList.length
       return if @MAX_USER_TWEETS > numTweets
       idx = @MAX_USER_TWEETS - 1
-      tweetList[idx]?.delete() while idx++ < numTweets
+      tweetList[idx]?.destroy() while idx++ < numTweets
 
 module.exports = TweetService

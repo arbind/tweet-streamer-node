@@ -1,26 +1,28 @@
 class Tweet extends ModelBase
   Service: TweetService
-  user: null
-  streamer: null
+  classFieldNames:  [ 'id'
+                    , 'text'
+                    , 'created_at'
+                    , 'in_reply_to_status_id'
+                    , 'in_reply_to_user_id'
+                    , 'in_reply_to_screen_name'
+                    , 'geo'
+                    , 'coordinates'
+                    , 'place'
+                    , 'retweet_count'
+                    , 'retweeted'
+                    ]
 
-  constructor: (atts) ->
-    super()
-    fields = ['id', 'text', 'created_at', 'in_reply_to_status_id', 'in_reply_to_user_id', 'in_reply_to_screen_name', 'geo', 'coordinates', 'place', 'retweet_count', 'retweeted' ]
-    @setFields atts, fields 
-    @set 'urls', atts.entities.urls if atts.entities?.urls?
+  constructor: (attributes) ->
+    super(attributes)
+    return unless atts? and isPresent(atts)
+    @set 'urls', attributes.entities.urls if attributes.entities?.urls?
 
-    if atts.user # save/update the user
-      u = new TwitterUser atts.user
-      console.log 'new user data'
-      console.log atts.user
-      console.log 'new user object'
-      console.log u
-      console.log 'new user id'
-      console.log u.id()
+    if attributes.user? # save/update the user
+      u = new TwitterUser attributes.user
       @setUser u
 
   text: ()-> (@get 'text')
-  screenName: ()-> (@user().screen_name)
 
   user: ()-> @getRef 'user'
   setUser: (user)->  @setRef 'user', user

@@ -38,7 +38,7 @@ app.configure 'production', ->
 app.configure 'development', ->
   app.use (express.errorHandler dumpExceptions: true, showStack: true )
 
-fs = (require 'fs')
+global.fs = (require 'fs')
 
 # application paths
 global.rootPath = {}
@@ -61,6 +61,7 @@ global.requireModuleInFile = (path, filename)->
   try
     if String.prototype.toClassName
       className = filename.toClassName()
+      throw "Class name #{className} already exists! Rename file '#{filename}' " if global[className]?
       clazz = require filePath    # if anything is exported, assume that it is a Class
       global[className] = clazz   # make the class available globally
     else
@@ -104,15 +105,14 @@ if redisURL
   global.redis = redis
   redis.on 'connect', =>
     redis.send_anyways = true
-    console.log "redis: connection established"
+    # console.log "\nredis[0]: connection established"
     redis.select redisDBNumber, (err, val) => 
       redis.send_anyways = false
-      redis.selectedDB = redisDBNumber
-      console.log "redis: selected DB ##{redisDBNumber} for #{env}"
-      redis.emit 'db-select', redisDBNumber
-      unless debug
-        redis.keys '*', (err, keys)->
-          console.log "redis: #{keys.length} keys present in DB ##{redisDBNumber} "
+      redis.selected_db = redisDBNumber
+      console.log "redis[#{redis.selected_db}]: selected DB ##{redisDBNumber} for #{env} environment"
+      redis.dbsize (err, size)=>
+        console.log "redis[#{redis.selected_db}]: selected DB has #{size} keys" if 0 < size
+        redis.emit 'db-select', redisDBNumber
 
 sessionStore = if redis? then new RedisStore {client: redis} else new express.session.MemoryStore;
 

@@ -1,6 +1,3 @@
-chai = require 'chai'
-chai.should()
-
 describe 'example', ->
   before (done) ->
     @x = 3

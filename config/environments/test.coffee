@@ -18,22 +18,35 @@ global.TwitterConsumers =
 # additional application paths in test environment
 rootPath.spec = (rootPath.path + 'spec/')
 rootPath.fixtures = (rootPath.spec + 'fixtures/')
+rootPath.factories = (rootPath.spec + 'factories/')
 
 # framework:test
 global.chai = (require 'chai')
+global.Charlatan = (require 'charlatan')
+chai.use (require 'chai-factories')
+
 global.should = chai.should()
 global.expect = chai.expect
 global.assert = chai.assert
 
+# load factories
+require rootPath.factories+f for f in fs.readdirSync(rootPath.factories)
+
 global.fixtureFor = (name)-> (require rootPath.fixtures + name)
 
-global.ensureTestEnvironment = (callback)->
-  if redisTestDB is redis.selectedDB 
-    callback() 
+global.clearRedisTestEnv = (msg, callback)->
+  if redisTestDB is redis.selected_db
+    redis.dbsize (err, size)->
+      console.log "redis[#{redis.selected_db}]:", msg, "purging #{size} keys" if 0 < size
+      redis.flushdb (err, ok) ->
+        callback(null, ok)
   else
-    redis.on 'db-select', (dbNum)=>
-      if redisTestDB is redis.selectedDB 
-        callback() 
-      else
-        p redisTestDB
-        callback(new Error "redis selected db ##{dbNum} - Test Environment is db ##{redisTestDB}" ) 
+    p redisTestDB
+    callback(new Error "redis selected db ##{dbNum} - Test Environment is db ##{redisTestDB}" ) 
+
+global.ensureClearRedisTestEnvironment = (msg, callback)->
+  if redisTestDB is redis.selected_db 
+    clearRedisTestEnv msg, callback
+  else
+    redis.on 'db-select', (dbNum)=> clearRedisTestEnv msg, callback
+

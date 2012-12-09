@@ -2,10 +2,15 @@ class ModelBase
   _attributes: null
   _refs: null
 
-  constructor: (attributes) -> 
+  constructor: (attributes) ->
     @_attributes = attributes || {}
     @_refs = {}
     @loadRefs()
+
+    # console.log @_attributes
+    throw "These attributes must be a hash not #{@_attributes.constructor.name}" unless @_attributes.isHash()
+    return unless attributes? and isPresent(attributes)
+    @setFields attributes
 
   className: ()-> @constructor.name
 
@@ -28,7 +33,7 @@ class ModelBase
 
   loadRefs: ()=> # recursively load all refs
     return unless @_attributes._refIds # nothing to load if there are no refIds
-    return if Object.keys(@_attributes._refIds).length is Object.keys(@_refs).length  # return if refs are already loaded
+    return if @_attributes._refIds.keys().length is @_refs.keys().length  # return if refs are already loaded
     nextRef = null # find the next ref that needs to be loaded:
     (nextRef ||= refName unless @_refs[refName]?) for refName, refId in @_attributes._refIds
     @loadRef name, @_attributes._refIds[name], (err, obj) =>
@@ -40,14 +45,14 @@ class ModelBase
     svcClass = global[svcClassName]  
     svcClass.find id, callback
 
-  # set a subset of atts
-  setFields: (atts, fieldNames) => (@set field, atts[field] if atts[field]?) for field in fieldNames if atts?
+  # set classFields that are present in atts
+  setFields: (atts) => (@set field, atts[field] if atts[field]?) for field in @classFieldNames if atts?
 
   # subclasses can define an @service attribute in order to implement these
 
   # persistence
   save:       ()-> (@Service.save @)
-  delete:     ()-> (@Service.delete @)
+  destroy:     ()-> (@Service.destroy @)
   # update: (atts)-> (@Service.udpate @, atts)
   # updateAttribute: (field, value)-> (@Service.udpateAttributes @, field, value)
 
@@ -55,8 +60,13 @@ class ModelBase
     JSON.stringify @_attributes
 
   toEvent: () -> 
-    atts = merge {}, @_attributes # copy for modification
-    delete atts[_refIds]
+    atts = Object.merge {}, @_attributes # copy for modification
+
+    # remove private fields
+    delete atts[fieldName] for fieldName in @privateFields if @privateFields?
+
+    # add object relationships
+    delete atts['_refIds']
     (atts[objName] = obj.toEvent() if obj?.toEvent?() ) for own objName, obj of @_refs
     atts
 

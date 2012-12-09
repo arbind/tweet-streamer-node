@@ -31,7 +31,6 @@ class StreamerService extends ServiceBase
 
   @isStreaming: (streamer)-> @Poll4NewTweetTimers[streamer.id()]?
 
-
   @pullAllStreamers: ()->
     @findAll (err, streamers) ->
       return if err? or not streamers?
@@ -79,7 +78,6 @@ class StreamerService extends ServiceBase
 
   @save: (streamer)->
     return false unless streamer?
-    # console.log "saving #{streamer.screenName()}"
     try 
       streamerKey = (@streamerKey streamer)
       redis.set streamerKey, streamer.toJSON() # save tweet by tweet id
@@ -89,7 +87,14 @@ class StreamerService extends ServiceBase
       logError exception
       false
 
-  @find: (streamer, callback )=> StreamerService.findById streamer.id, callback
+  @find: (streamer, callback )=>
+    id = streamer if isString(streamer) or isNumber(streamer)
+    id ||= streamer.id() if streamer instanceof Streamer
+    id ||= streamer.id if streamer.isHash()
+    throw 'id is required to find a Streamer' unless id?
+
+    tid = (parseInt id.toString(), 10) # convert string or numeric id to string first then parse in base 10
+    StreamerService.findById tid, callback
 
   @saveFriendIds: (streamer, friendList , callback) ->
     # console.log "saving #{friendList.length} friends for #{streamer.screenName()}"
@@ -115,7 +120,7 @@ class StreamerService extends ServiceBase
 
   @findTweets: (screen_name, limit, callback )=> TweetService.findStreamerTweets screen_name, limit, callback
 
-  @delete: (streamers...)=>
+  @destroy: (streamers...)=>
     return unless streamers
     for streamer in streamers
       try 

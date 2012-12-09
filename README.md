@@ -1,20 +1,13 @@
 # A TweetStream Service
 
-### To Start Server:
+### Install and Start:
 ````
 npm install
+cake test
 npm start
-````
-
-### To Start Client:
-````
 browse to [ http://localhost:8888 ]
 ````
 
-### To Execute Specs:
-````
-mocha -R spec --compilers cofee:coffee-script spec/*/*/*
-````
 ### &hearts; The MVP #1 (In Progress):
 1. &hearts; homepage
   * &hearts; /
