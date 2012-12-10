@@ -41,8 +41,6 @@ class ModelBase
     @_attributes = attributes || {}
     @_refs = {}
     @_loadRefs()
-
-    # console.log @_attributes
     throw "These attributes must be a hash not #{@_attributes.constructor.name}" unless @_attributes.isHash()
     return unless attributes? and isPresent(attributes)
     @setFields attributes

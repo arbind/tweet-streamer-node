@@ -69,18 +69,24 @@ RedisORM =
       o = obj
       unless o?
         clazz = @rorm_modelClass()
-        o = new clazz(attributes)
+        try
+          o = new clazz(attributes)
+        catch ex
+          err = @rorm_logError "Can not materialize #{@rorm_modelClassName()} from #{attributes}"
       callback null, o
 
   ###
   # find
   #   public class method
   ###
+  modelIDFor: (id)-> id
+
   find: (model, callback )->
     key = rorm_keyForModel(model) if 'function' is typeof model.className and 'function' is typeof model.id
     unless key?
-      className = @rorm_modelClassName()      
+      className = @rorm_modelClassName()
       id = if model.isHash() then model.id else model.toString()
+      id = @modelIDFor(id)
       key = rorm_key(className, id)
     callback(BAD_KEY) unless key?
     @rorm_findObjectForKey key, callback
@@ -92,8 +98,7 @@ RedisORM =
   findById: (id, callback )->
     ( return callback(@NO_MODEL_ID, null) )unless id? # check that args are given
     className = @rorm_modelClassName()      
-    key = rorm_key(className, id)
-    console.log 'findById', key
+    key = rorm_key(className, @modelIDFor(id))
     @rorm_findObjectForKey key, callback
 
   ###
@@ -172,7 +177,7 @@ RedisORM =
     new clazz JSON.parse(json_string)
 
   rorm_logError: (exception)->
-    console.log "exception:", exception.message, exception
-    new Error exception.message
+    console.log "exception:", (exception.message||''), exception
+    new Error(exception.message || exception)
 
 module.exports = RedisORM

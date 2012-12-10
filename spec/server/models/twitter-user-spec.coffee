@@ -89,9 +89,9 @@ describe 'TwitterUser', ->
           done()
 
       it 'instance has relevant attributes', (done) =>
-        @subject.id().should.equal @atts.id
-        @subject.screenName().should.equal @atts.screen_name
-        @subject.profileImageURL().should.equal @atts.profile_image_url
+        (expect @subject.id()).to.equal @atts.id
+        (expect @subject.screenName()).to.equal @atts.screen_name
+        (expect @subject.profileImageURL()).to.equal @atts.profile_image_url
         done()
 
 
@@ -113,72 +113,32 @@ describe 'TwitterUser', ->
       it.skip '.emit to socket sends only attributes'
       it.skip '.emit to EventMachine sends the instance obj'
 
-#     describe 'existing', ->
-#       @savedAtts = null
-#       @oauth = null
-#       @consumerApp = null
-#       @consumer = null
-#       before (done) => 
-#         @savedAtts = @subjectClass::TESTDATA.make()
-#         @consumerApp = 'streamersApp'
-#         @consumer = TwitterConsumers[@consumerApp]
-#         @savedSubject = new @subjectClass( @savedAtts)
-#         @savedSubject.save done
+    describe 'existing', ->
 
-#       after (done) => 
-#         @savedSubject.destroy done
+      before (done) => 
+        @savedAtts = @subjectClass::TESTDATA.make()
+        @savedSubject = new @subjectClass(@savedAtts)
+        @savedSubject.save done
 
-#       it 'from db with string id ', (done)=>
-#         idString = "00#{@savedAtts.id}"
-#         @subjectClass.materialize idString, (err, obj)->
-#           (expect err).to.be.falsy
-#           (expect obj).to.be.ok
-#           (expect obj.id() ).to.equal @savedAtts.id
-#           (expect obj.screenName() ).to.equal @savedAtts.screen_name
-#           (expect obj.description() ).to.equal @savedAtts.description
-#           (expect obj.location() ).to.equal @savedAtts.location
-#           (expect obj.language() ).to.equal @savedAtts.lang
-#           (expect obj.followersCount() ).to.equal @savedAtts.followers_count
-#           (expect obj.friendsCount() ).to.equal @savedAtts.friends_count
-#           (expect obj.timeZone() ).to.equal @savedAtts.time_zone
-#           (expect obj.utcOffset() ).to.equal @savedAtts.utc_offset
-#           oauth = obj.oauthAccess()
-#           (expect oauth.consumer_key).to.equal @consumer.key
-#           (expect oauth.consumer_secret).to.equal @consumer.secret
-#           (expect oauth.access_token_key).to.equal @savedAtts.oauth_access.token
-#           (expect oauth.access_token_secret).to.equal @savedAtts.oauth_access.secret
-#           done()
+      after (done) => 
+        @savedSubject.destroy done
 
-#       it 'from db with numeric id ', (done)=>
-#         idNumber = parseInt @savedAtts.id, 10
-#         @subjectClass.materialize idNumber, (err, obj)->
-#           (expect err).to.be.falsy
-#           (expect obj).to.be.ok
-#           (expect obj.id() ).to.equal @savedAtts.id
-#           (expect obj.screenName() ).to.equal @savedAtts.screen_name
-#           (expect obj.description() ).to.equal @savedAtts.description
-#           (expect obj.location() ).to.equal @savedAtts.location
-#           (expect obj.language() ).to.equal @savedAtts.lang
-#           (expect obj.followersCount() ).to.equal @savedAtts.followers_count
-#           (expect obj.friendsCount() ).to.equal @savedAtts.friends_count
-#           (expect obj.timeZone() ).to.equal @savedAtts.time_zone
-#           (expect obj.utcOffset() ).to.equal @savedAtts.utc_offset
-#           oauth = obj.oauthAccess()
-#           (expect oauth.consumer_key).to.equal @consumer.key
-#           (expect oauth.consumer_secret).to.equal @consumer.secret
-#           (expect oauth.access_token_key).to.equal @savedAtts.oauth_access.token
-#           (expect oauth.access_token_secret).to.equal @savedAtts.oauth_access.secret
-#           done()  
+      it 'from db with string id ', (done)=>
+        idString = "00#{@savedAtts.id}"
+        @subjectClass.materialize idString, (err, obj)->
+          (expect err).to.be.falsy
+          (expect obj).to.be.ok
+          (expect obj.id()).to.equal @savedAtts.id
+          (expect obj.screenName()).to.equal @savedAtts.screen_name
+          (expect obj.profileImageURL()).to.equal @savedAtts.profile_image_url
+          done()
 
-#   describe.skip 'twitter API', (done) ->
-
-#     it 'fetchUser', (done) =>
-#     it 'fetchFriends', (done) =>
-#     it 'fetchHomeTimeline', (done) =>
-#     it 'fetchNewTweets', (done) =>
-#     it 'pull', (done) =>
-
-#   describe.skip 'streaming', (done) ->
-#     it 'saveTweets', (done) =>    
-#     it 'startStreaming', (done) =>    
-#     it 'stopStreaming', (done) =>
+      it 'from db with numeric id ', (done)=>
+        idNumber = parseInt @savedAtts.id, 10
+        @subjectClass.materialize idNumber, (err, obj)->
+          (expect err).to.be.falsy
+          (expect obj).to.be.ok
+          (expect obj.id()).to.equal @savedAtts.id
+          (expect obj.screenName()).to.equal @savedAtts.screen_name
+          (expect obj.profileImageURL()).to.equal @savedAtts.profile_image_url
+          done()  
