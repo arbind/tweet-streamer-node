@@ -1,149 +1,117 @@
-# describe 'TwitterUser', ->
-#   @savedUser = null
+describe 'TwitterUser', ->
+  # This is a spec for:
+  @subjectClass = TwitterUser
 
-#   before (done)=> ensureClearRedisTestEnvironment("before TwitterUser specs:", done)
-#   after (done)=> ensureClearRedisTestEnvironment("after TwitterUser specs:", done)
+  ###
+  #   instance variables shared by specs
+  ###
+  @atts = null
+  @savedAtts = null
+  @subject = null
+  @savedSubject = null
 
-#   it 'exists', (done)=> 
-#     (expect TwitterUser).to.exist
-#     done()
+  before (done)=> ensureClearRedisTestEnvironment("before TwitterUser specs:", done)
+  after (done)=> ensureClearRedisTestEnvironment("after TwitterUser specs:", done)
 
-#   it 'database is empty', (done)->
-#     TwitterUser.findAll (err, list)->
-#       (expect err).not.to.exist
-#       (expect list).to.exist
-#       (expect list).to.be.empty
-#       done()
+  it 'exists', (done)=> 
+    (expect @subjectClass).to.exist
+    done()
 
-#   it 'save', (done)=>
-#     atts = TwitterUserFactory.make()
-#     tu = new TwitterUser atts
-#     count = 0
-#     TwitterUser.findAll (err, listBefore)->
-#       count = listBefore.length if isPresent(listBefore)
-#       tu.save()
-#       @savedUser = tu
-#       Streamer.findAll (err, listAfter)->
-#         (expect listAfter).to.exist
-#         (expect listAfter.length).to.equal count+1
-#         done()
+  it 'database is empty', (done)=>
+    @subjectClass.findAll (err, list)=>
+      (expect err).not.to.exist
+      (expect list).to.exist
+      (expect list).to.be.empty
+      done()
 
-#   it 'find', (done)=>
-#     Streamer.find @savedStreamer.id(), (err, obj)->
-#       (expect err).not.to.exist
-#       (expect obj).to.exist
-#       (expect obj.screenName()).to.equal @savedStreamer.screenName()
-#       (expect obj.oauthAccess().access_token_secret).to.equal @savedStreamer.oauthAccess().access_token_secret
-#       done()
+  it 'save', (done)=>
+    atts = @subjectClass::TESTDATA.make()
+    tu = new @subjectClass(atts)
+    count = 0
+    @subjectClass.findAll (err, listBefore)=>
+      count = listBefore.length if isPresent(listBefore)
+      tu.save (err, ok)=>
+        @savedSubject = tu
+        @subjectClass.findAll (err, listAfter)=>
+          (expect listAfter).to.exist
+          (expect listAfter.length).to.equal count+1
+          done()
 
-#   it 'destroy', (done)=>
-#     count = 9999
-#     Streamer.findAll (err, listBefore)->
-#       count = listBefore.length if isPresent(listBefore)
-#       @savedStreamer.destroy()
-#       @savedStreamer = null
-#       Streamer.findAll (err, listAfter)->
-#         (expect listAfter).to.exist
-#         (expect listAfter.length).to.equal count-1
-#         done()
+  it 'find', (done)=>
+    @subjectClass.find @savedSubject.id(), (err, obj)->
+      (expect err).not.to.exist
+      (expect obj).to.exist
+      (expect obj.screenName()).to.equal @savedSubject.screenName()
+      done()
 
-#   it 'findAll', (done) =>
-#     count = 0
-#     Streamer.findAll (err, listBefore)->
-#       count = listBefore.length if isPresent(listBefore)
-#       more = 8
-#       addMore = more
-#       newStreamers = []
-#       while addMore--
-#         h = StreamerFactory.make()
-#         s = new Streamer h
-#         s.save()
-#         newStreamers.push s
-#       Streamer.findAll (err, listAfter)->
-#         (expect listAfter).to.exist
-#         (expect listAfter.length).to.equal count + more
-#         s.destroy() for s in newStreamers # clear the newly created streamers
-#         done()
+  it 'destroy', (done)=>
+    count = 9999
+    @subjectClass.findAll (err, listBefore)->
+      count = listBefore.length if isPresent(listBefore)
+      @savedSubject.destroy()
+      @savedSubject = null
+      @subjectClass.findAll (err, listAfter)->
+        (expect listAfter).to.exist
+        (expect listAfter.length).to.equal count-1
+        done()
 
-#   describe 'materialize', ->
-#     @atts = null
-#     @consumerApp = null
-#     @consumer = null
-#     @oauth = null
+  it 'findAll', (done) =>
+    count = 0
+    @subjectClass.findAll (err, listBefore)->
+      count = listBefore.length if isPresent(listBefore)
+      more = 8
+      addMore = more
+      newStreamers = []
+      while addMore--
+        h = @subjectClass::TESTDATA.make()
+        s = new @subjectClass(h)
+        s.save()
+        newStreamers.push s
+      @subjectClass.findAll (err, listAfter)->
+        (expect listAfter).to.exist
+        (expect listAfter.length).to.equal count + more
+        s.destroy() for s in newStreamers # clear the newly created streamers
+        done()
 
-#     before (done) =>
-#       @atts = StreamerFactory.make()
-#       @oauth = @atts.oauth_access
-#       delete @atts.oauth_access
-#       @consumerApp = 'streamersApp'
-#       @consumer = TwitterConsumers[@consumerApp]
-#       (expect @consumer).to.be.ok
-#       done()
+  describe 'materialize', ->
+    before (done) =>
+      @atts = @subjectClass::TESTDATA.make()
+      done()
 
-#     describe 'new with oauth credentials', ->
-#       @streamer = null
-#       before (done) => 
-#         uidString = "00#{@uid}"
-#         Streamer.materialize @atts, @consumerApp, @oauth.token, @oauth.secret, (err, streamer)->
-#           (expect err).to.be.null
-#           (expect streamer).to.be.ok
-#           @streamer = streamer
-#           done()
+    describe 'new', ->
+      @subject = null
+      before (done) => 
+        uidString = "00#{@uid}"
+        @subjectClass.materialize @atts, (err, obj)->
+          (expect err).to.be.null
+          (expect obj).to.be.ok
+          @subject = obj
+          done()
 
-#       it 'instance has relevant attributes', (done) =>
-#         @streamer.id().should.equal @atts.id
-#         @streamer.screenName().should.equal @atts.screen_name
-#         @streamer.description().should.equal @atts.description
-#         @streamer.location().should.equal @atts.location
-#         @streamer.language().should.equal @atts.lang
-#         @streamer.followersCount().should.equal @atts.followers_count
-#         @streamer.friendsCount().should.equal @atts.friends_count
-#         @streamer.timeZone().should.equal @atts.time_zone
-#         @streamer.utcOffset().should.equal @atts.utc_offset
-#         done()
+      it 'instance has relevant attributes', (done) =>
+        @subject.id().should.equal @atts.id
+        @subject.screenName().should.equal @atts.screen_name
+        @subject.profileImageURL().should.equal @atts.profile_image_url
+        done()
 
-#       it 'intance has oauth credentials including consumer app and access token', (done) =>
-#         oauth = @streamer.oauthAccess()
-#         (expect oauth).to.exist
-#         (expect oauth.consumer_key).to.equal @consumer.key
-#         (expect oauth.consumer_secret).to.equal @consumer.secret
-#         (expect oauth.access_token_key).to.equal @oauth.token
-#         (expect oauth.access_token_secret).to.equal @oauth.secret
-#         done()
 
-#       it '.toJSON has relevant attributes', (done) =>
-#         jsonValue = @streamer.toJSON()
-#         jsonValue.should.be.a('string')
-#         jsonStreamer = JSON.parse(jsonValue)
-#         jsonStreamer.should.be.an('object')
-#         (expect jsonStreamer.contains @atts).to.be.true # streamer contains all the original atts
-#         (expect @atts.contains jsonStreamer).to.be.false # streamer contains more than the original atts
-#         done()
+      it '.toJSON has relevant attributes', (done) =>
+        jsonValue = @subject.toJSON()
+        jsonValue.should.be.a('string')
+        jsonSubject = JSON.parse(jsonValue)
+        jsonSubject.should.be.an('object')
+        (expect jsonSubject.contains @atts).to.be.true # streamer contains all the original atts
+        done()
 
-#       it '.toEvent has relevant attributes', (done) =>
-#         ev = @streamer.toEvent()
-#         (expect ev.contains @atts).to.be.true # streamer contains all the original atts
-#         (expect @atts.contains ev).to.be.true # streamer contains more than the original atts
-#         done()
+      it '.toEvent has relevant attributes', (done) =>
+        ev = @subject.toEvent()
+        (expect ev.contains @atts).to.be.true # streamer contains all the original atts
+        (expect @atts.contains ev).to.be.true # streamer contains more than the original atts
+        done()
 
-#       it '.toJSON shows oauth_access', (done)=>
-#         jsonValue = @streamer.toJSON()
-#         jsonStreamer = JSON.parse(jsonValue)
-#         oauth = jsonStreamer.oauth_access
-#         (expect oauth).to.exist
-#         (expect oauth.token)
-#         (expect oauth.app).to.equal @consumerApp
-#         (expect oauth.token).to.equal @oauth.token
-#         (expect oauth.secret).to.equal @oauth.secret
-#         done()
 
-#       it '.toEvent hides oauth_access', (done)=>
-#         ev = @streamer.toEvent()
-#         (expect ev.oauth_access).not.to.exist
-#         done()
-
-#       it.skip '.emit to socket sends only attributes'
-#       it.skip '.emit to EventMachine sends the instance obj'
+      it.skip '.emit to socket sends only attributes'
+      it.skip '.emit to EventMachine sends the instance obj'
 
 #     describe 'existing', ->
 #       @savedAtts = null
@@ -151,18 +119,18 @@
 #       @consumerApp = null
 #       @consumer = null
 #       before (done) => 
-#         @savedAtts = StreamerFactory.make()
+#         @savedAtts = @subjectClass::TESTDATA.make()
 #         @consumerApp = 'streamersApp'
 #         @consumer = TwitterConsumers[@consumerApp]
-#         @savedStreamer = new Streamer @savedAtts
-#         @savedStreamer.save done
+#         @savedSubject = new @subjectClass( @savedAtts)
+#         @savedSubject.save done
 
 #       after (done) => 
-#         @savedStreamer.destroy done
+#         @savedSubject.destroy done
 
 #       it 'from db with string id ', (done)=>
 #         idString = "00#{@savedAtts.id}"
-#         Streamer.materialize idString, (err, obj)->
+#         @subjectClass.materialize idString, (err, obj)->
 #           (expect err).to.be.falsy
 #           (expect obj).to.be.ok
 #           (expect obj.id() ).to.equal @savedAtts.id
@@ -183,7 +151,7 @@
 
 #       it 'from db with numeric id ', (done)=>
 #         idNumber = parseInt @savedAtts.id, 10
-#         Streamer.materialize idNumber, (err, obj)->
+#         @subjectClass.materialize idNumber, (err, obj)->
 #           (expect err).to.be.falsy
 #           (expect obj).to.be.ok
 #           (expect obj.id() ).to.equal @savedAtts.id

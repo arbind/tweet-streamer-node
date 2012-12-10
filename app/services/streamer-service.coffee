@@ -7,12 +7,7 @@ class StreamerService extends ServiceBase
   _instance = undefined
   @singleton: () -> _instance ?= new StreamerService
 
-  constructor: () ->  
-    @StreamerService = @
-
-  @logError = global.logError
-  @TwitterClients = {}
-  @Poll4NewTweetTimers = {}
+  # ORM
   # call back errors
   @NO_STREAMER_ID: new Error 'No Twitter ID For Streamer!'
   @NO_SCREEN_NAME: new Error 'No Twitter Screen Name For Streamer!'
@@ -22,6 +17,75 @@ class StreamerService extends ServiceBase
   @idKey:        (streamer_id)=> "#{@prefix}:#{streamer_id}"
   @streamerKey:  (streamer)=> @idKey streamer.id()
   @streamerFriendsKey:  (streamer)=> "friends:" + streamer.id()
+
+  @save: (streamer, callback)->
+    unless streamer?
+      callback(null, false) if callback?
+      return false 
+    try 
+      streamerKey = (@streamerKey streamer)
+      redis.set streamerKey, streamer.toJSON(), (err, ok)->
+        (callback err, ok) if callback?
+      return true
+    catch exception
+      console.log "exception #{exception} ."
+      logError exception
+      (callback exception) if callback?
+      false
+
+  @destroy: (streamer, callback)=>
+    unless streamer
+      callback(null, false) if callback?
+      return false
+    try 
+      streamerKey = (@streamerKey streamer)
+      return redis.del streamerKey, (err, ok)->
+        callback(null, false) if callback?
+    catch ex
+      logError ex
+      (callback ex) if callback?
+      return false
+
+  @find: (streamer, callback )=>
+    id = streamer if isString(streamer) or isNumber(streamer)
+    id ||= streamer.id() if streamer instanceof Streamer
+    id ||= streamer.id if streamer.isHash()
+    throw 'id is required to find a Streamer' unless id?
+
+    tid = (parseInt id.toString(), 10) # convert string or numeric id to string first then parse in base 10
+    StreamerService.findById tid, callback
+
+  @saveFriendIds: (streamer, friendList , callback) ->
+    # console.log "saving #{friendList.length} friends for #{streamer.screenName()}"
+    @_saveArrayForKey (@streamerFriendsKey streamer), friendList, callback
+
+  @findFriendIds: (streamer, callback) ->
+    @_findArrayForKey (@streamerFriendsKey streamer), callback
+
+  @findById: (id, callback )->
+    ( return callback(@NO_STREAMER_ID, null) )unless id? # check that args are given
+    StreamerService._findObjectForKey Streamer, (@idKey id), callback
+
+  @findAll: (callback)->
+    redis.keys @prefix + ':*', (err, streamerKeys) ->
+      return callback(err) if err?
+      return callback(null, []) unless streamerKeys?.length > 0
+      streamers = []
+      for key, idx in streamerKeys
+        do(key, idx)->
+          StreamerService._findObjectForKey Streamer, key, (err, streamer)->
+            streamers.push streamer
+            callback(null, streamers) if streamers.length is streamerKeys.length
+
+  @findTweets: (screen_name, limit, callback )=> TweetService.findStreamerTweets screen_name, limit, callback
+
+  # Service
+  constructor: () ->  
+    @StreamerService = @
+
+  @logError = global.logError
+  @TwitterClients = {}
+  @Poll4NewTweetTimers = {}
 
   # Cached twitter clients
   @materializeTwitterClient: (streamer) -> 
@@ -75,66 +139,5 @@ class StreamerService extends ServiceBase
       # console.log "#{streamer.screenName()}: no new tweets" if !tweets or 0==tweets.length
       return if !tweets or 0==tweets.length
       tweet.emitTo(@singleton()) for tweet in tweets
-
-  @save: (streamer, callback)->
-    unless streamer?
-      callback(null, false) if callback?
-      return false 
-    try 
-      streamerKey = (@streamerKey streamer)
-      redis.set streamerKey, streamer.toJSON(), (err, ok)->
-        (callback err, ok) if callback?
-      return true
-    catch exception
-      console.log "exception #{exception} ."
-      logError exception
-      (callback exception) if callback?
-      false
-
-  @find: (streamer, callback )=>
-    id = streamer if isString(streamer) or isNumber(streamer)
-    id ||= streamer.id() if streamer instanceof Streamer
-    id ||= streamer.id if streamer.isHash()
-    throw 'id is required to find a Streamer' unless id?
-
-    tid = (parseInt id.toString(), 10) # convert string or numeric id to string first then parse in base 10
-    StreamerService.findById tid, callback
-
-  @saveFriendIds: (streamer, friendList , callback) ->
-    # console.log "saving #{friendList.length} friends for #{streamer.screenName()}"
-    @_saveArrayForKey (@streamerFriendsKey streamer), friendList, callback
-
-  @findFriendIds: (streamer, callback) ->
-    @_findArrayForKey (@streamerFriendsKey streamer), callback
-
-  @findById: (id, callback )->
-    ( return callback(@NO_STREAMER_ID, null) )unless id? # check that args are given
-    StreamerService._findObjectForKey Streamer, (@idKey id), callback
-
-  @findAll: (callback)->
-    redis.keys @prefix + ':*', (err, streamerKeys) ->
-      return callback(err) if err?
-      return callback(null, []) unless streamerKeys?.length > 0
-      streamers = []
-      for key, idx in streamerKeys
-        do(key, idx)->
-          StreamerService._findObjectForKey Streamer, key, (err, streamer)->
-            streamers.push streamer
-            callback(null, streamers) if streamers.length is streamerKeys.length
-
-  @findTweets: (screen_name, limit, callback )=> TweetService.findStreamerTweets screen_name, limit, callback
-
-  @destroy: (streamer, callback)=>
-    unless streamer
-      callback(null, false) if callback?
-      return false
-    try 
-      streamerKey = (@streamerKey streamer)
-      return redis.del streamerKey, (err, ok)->
-        callback(null, false) if callback?
-    catch ex
-      logError ex
-      (callback ex) if callback?
-      return false
 
 module.exports = StreamerService

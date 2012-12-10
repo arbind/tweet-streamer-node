@@ -24,7 +24,7 @@ String::tokens ||= (delim) ->
   
 # toCamel
 String::toCamel ||= ()->
-  @replace /(\-[a-z])/g, ($1)->
+  @replace /(\-[a-z,A-Z])/g, ($1)->
     $1.toUpperCase().replace('-','')
 
 # dasherize

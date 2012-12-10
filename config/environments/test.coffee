@@ -29,9 +29,6 @@ global.should = chai.should()
 global.expect = chai.expect
 global.assert = chai.assert
 
-# load factories
-require rootPath.factories+f for f in fs.readdirSync(rootPath.factories)
-
 global.fixtureFor = (name)-> (require rootPath.fixtures + name)
 
 global.clearRedisTestEnv = (msg, callback)->

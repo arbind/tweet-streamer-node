@@ -38,7 +38,7 @@ app.configure 'production', ->
 app.configure 'development', ->
   app.use (express.errorHandler dumpExceptions: true, showStack: true )
 
-global.fs = (require 'fs')
+global.FS = (require 'fs')
 
 # application paths
 global.rootPath = {}
@@ -72,7 +72,7 @@ global.requireModuleInFile = (path, filename)->
     throw exception
 
 global.requireModulesInDirectory = (path)->
-  (requireModuleInFile path, f) for f in fs.readdirSync(path)
+  (requireModuleInFile path, f) for f in FS.readdirSync(path)
 
 # load some usefull stuff
 requireModulesInDirectory rootPath.extentions

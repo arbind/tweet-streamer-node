@@ -4,37 +4,37 @@ class ModelBase
   _attributes: null
   _refs: null
 
-  @extend: (obj) ->
-    @[key] = value for key, value of obj when key not in mixinKeywords
-    obj.extended?.apply(@)
+  @extend: (module) ->
+    @[key] = value for key, value of module when key not in mixinKeywords
+    module.extended?.apply(@)
     @
 
-  @include: (klazz) -> # Assign properties to the prototype
-    @::[key] = value for key, value of klazz when key not in mixinKeywords
-    klazz.included?.apply(@)
+  @include: (module) -> # Assign properties to the prototype
+    @::[key] = value for key, value of module when key not in mixinKeywords
+    module.included?.apply(@)
     @
 
-  # ORM service 
-  @_ORMService: null
-  @ORM: ()->
-    return @_ORMService if @_ORMService?
-    @_ORMService = @::['ORM'] if @::['ORM']?
-    return @_ORMService if @_ORMService
-    ormServiceName = @::['constructor'].name + "ORM"
-    @_ORMService = global[ormServiceName] if global[ormServiceName]?
-    return @_ORMService if @_ORMService
-    throw "No ORM Service found!"
+  # # ORM service 
+  # @_ORMService: null
+  # @ORM: ()->
+  #   return @_ORMService if @_ORMService?
+  #   @_ORMService = @::['ORM'] if @::['ORM']?
+  #   return @_ORMService if @_ORMService
+  #   ormServiceName = @::['constructor'].name + "ORM"
+  #   @_ORMService = global[ormServiceName] if global[ormServiceName]?
+  #   return @_ORMService if @_ORMService
+  #   throw "No ORM Service found! for:" + '\n  constructor: ' + @::['constructor'].name + '\n  ormServiceName:' + ormServiceName+  '\n  service ' + global[ormServiceName] + "\n"
 
-  # ORM: class methods
-  @find:     (info, callback)-> @ORM().find info, callback
-  @findById:   (id, callback)-> @ORM().findById id, callback
-  @findAll:       (callback) -> @ORM().findAll callback
+  # # ORM: class methods
+  # @find:     (info, callback)-> @ORM().find info, callback
+  # @findById:   (id, callback)-> @ORM().findById id, callback
+  # @findAll:       (callback) -> @ORM().findAll callback
 
-  # ORM: instance methods
-  save:     (callback)=> @constructor.ORM().save @, callback
-  destroy:  (callback)=> @constructor.ORM().destroy @, callback
-  update: (newAtts, callback)-> @constructor.ORM().update @, newAtts, callback
-  updateAttribute: (field, newValue, callback)-> @constructor.ORM().updateAttribute @, field, newValue, callback
+  # # ORM: instance methods
+  # save:     (callback)=> @constructor.ORM().save @, callback
+  # destroy:  (callback)=> @constructor.ORM().destroy @, callback
+  # update: (newAtts, callback)-> @constructor.ORM().update @, newAtts, callback
+  # updateAttribute: (field, newValue, callback)-> @constructor.ORM().updateAttribute @, field, newValue, callback
 
   # BaseClass class methods
   constructor: (attributes) ->

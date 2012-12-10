@@ -1,5 +1,5 @@
 class TwitterUser extends ModelBase
-  Service: TwitterUserService
+  @extend  RedisORM
   classFieldNames:  [ 'id'
                     , 'name'
                     , 'screen_name'
@@ -19,7 +19,6 @@ class TwitterUser extends ModelBase
   screenName:       ()=> (@get 'screen_name')
   profileImageURL:  ()-> (@get 'profile_image_url')
 
-
   # optional attributes: removed to trim DB size
   # location:         ()=> (@get 'location')
   # description:      ()=> (@get 'description')
@@ -29,4 +28,4 @@ class TwitterUser extends ModelBase
   # utcOffset:        ()=> (@get 'utc_offset')
   # language:         ()=> (@get 'lang')
 
-module.exports = Tweet
+module.exports = TwitterUser
